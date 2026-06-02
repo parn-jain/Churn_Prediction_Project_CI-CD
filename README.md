@@ -1,7 +1,7 @@
 ---
 title: Customer Churn Analytics Dashboard
 emoji: 📊
-colorFrom: cyan
+colorFrom: indigo
 colorTo: blue
 sdk: docker
 app_port: 8000
