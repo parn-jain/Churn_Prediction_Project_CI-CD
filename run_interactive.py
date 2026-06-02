@@ -50,10 +50,24 @@ def print_study_concept(concept_num, title, description, details):
 def run_pipeline_orchestrator():
     print_header("Building and Registering Production Pipelines (V1 & V2)")
     
-    clean_path = "D:/churn-prediction-project/data/clean_churn.csv"
+    # Compute relative paths dynamically based on this file's folder location
+    project_root = os.path.abspath(os.path.dirname(__file__))
+    raw_path = os.path.join(project_root, "data", "raw_churn.csv")
+    clean_path = os.path.join(project_root, "data", "clean_churn.csv")
+    
+    # On-the-fly Data Generation Safeguard!
+    if not os.path.exists(raw_path):
+        print("Raw data not found! Generating raw churn dataset dynamically...")
+        os.makedirs(os.path.dirname(raw_path), exist_ok=True)
+        df_raw = generate_churn_dataset(num_samples=1500)
+        df_raw.to_csv(raw_path, index=False)
+        print("Raw data generated successfully!")
+        
+    # On-the-fly Data Cleaning & EDA Safeguard!
     if not os.path.exists(clean_path):
-        print(Fore.RED + "Error: Clean dataset not found. Please run Step 1 and Step 2 first.")
-        return
+        print("Clean dataset not found! Running EDA, Cleaning & Imputation dynamically...")
+        clean_and_impute_data(raw_path, clean_path)
+        print("Clean dataset created successfully!")
         
     df = pd.read_csv(clean_path)
     X = df.drop(columns=["Churn"])
