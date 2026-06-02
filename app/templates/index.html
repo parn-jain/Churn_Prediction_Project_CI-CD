@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Churn Predictor Dashboard</title>
+    <!-- Modern typography from Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(17, 24, 39, 0.7);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #06b6d4;
+            --accent-glow: rgba(6, 182, 212, 0.3);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --color-safe: #10b981;
+            --color-safe-glow: rgba(16, 185, 129, 0.2);
+            --color-risk: #ef4444;
+            --color-risk-glow: rgba(239, 68, 68, 0.2);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(6, 182, 212, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.1) 0px, transparent 50%);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            background: linear-gradient(135deg, #ffffff 30%, var(--accent-cyan) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 2.5rem;
+        }
+
+        @media (max-width: 900px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Forms Styling */
+        .form-section h2, .result-section h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-section h2::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 20px;
+            background-color: var(--accent-cyan);
+            border-radius: 4px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        label span.val-display {
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+
+        input[type="text"], input[type="number"], select {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 4px var(--accent-glow);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        /* Custom Slider Styling */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            outline: none;
+            margin: 10px 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent-cyan);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--accent-cyan);
+            transition: var(--transition);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        /* Toggle Button Group */
+        .toggle-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 4px;
+        }
+
+        .toggle-btn {
+            background: transparent;
+            border: none;
+            padding: 0.6rem;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .toggle-btn.active {
+            background: var(--accent-cyan);
+            color: #0b0f19;
+            font-weight: 600;
+            box-shadow: 0 4px 12px var(--accent-glow);
+        }
+
+        /* Counter Buttons */
+        .counter-group {
+            display: flex;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            overflow: hidden;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px;
+        }
+
+        .counter-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            color: var(--text-primary);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .counter-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .counter-val {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--accent-cyan);
+        }
+
+        /* Submit Button */
+        .submit-btn {
+            background: linear-gradient(135deg, var(--accent-cyan) 0%, #3b82f6 100%);
+            border: none;
+            border-radius: 14px;
+            padding: 1rem;
+            color: #0b0f19;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 25px -5px rgba(6, 182, 212, 0.4);
+            margin-top: 1.5rem;
+            transition: var(--transition);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px -5px rgba(6, 182, 212, 0.6);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Result Section */
+        .result-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px dashed rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 2rem;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .result-card.active-safe {
+            border-color: var(--color-safe);
+            background: rgba(16, 185, 129, 0.02);
+        }
+
+        .result-card.active-risk {
+            border-color: var(--color-risk);
+            background: rgba(239, 68, 68, 0.02);
+        }
+
+        /* Circular Speedometer Gauge */
+        .gauge-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin-bottom: 1.5rem;
+        }
+
+        .gauge-svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .gauge-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.05);
+            stroke-width: 12px;
+        }
+
+        .gauge-progress {
+            fill: none;
+            stroke: var(--accent-cyan);
+            stroke-width: 12px;
+            stroke-linecap: round;
+            stroke-dasharray: 565.48; /* 2 * PI * radius */
+            stroke-dashoffset: 565.48;
+            transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .gauge-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .gauge-percentage {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .gauge-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+            margin-top: -0.25rem;
+        }
+
+        /* Churn Badges */
+        .badge {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            padding: 0.4rem 1.25rem;
+            border-radius: 50px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: none;
+        }
+
+        .badge.safe {
+            display: inline-block;
+            background: var(--color-safe-glow);
+            color: var(--color-safe);
+            border: 1px solid var(--color-safe);
+            box-shadow: 0 0 15px var(--color-safe-glow);
+        }
+
+        .badge.risk {
+            display: inline-block;
+            background: var(--color-risk-glow);
+            color: var(--color-risk);
+            border: 1px solid var(--color-risk);
+            box-shadow: 0 0 15px var(--color-risk-glow);
+        }
+
+        .analysis-text {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            max-width: 320px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .empty-state svg {
+            color: rgba(255, 255, 255, 0.1);
+            width: 64px;
+            height: 64px;
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+            max-width: 250px;
+            font-size: 0.9rem;
+        }
+
+        /* API Details Info Footnote */
+        .footer-info {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>CUSTOMER CHURN ANALYTICS</h1>
+        <p>Real-time predictive dashboard loaded with registered production pipelines</p>
+    </header>
+
+    <div class="dashboard-grid">
+        <!-- Input Form Section -->
+        <div class="form-section">
+            <h2>Customer Profile</h2>
+            <form id="churn-form" class="form-grid">
+                <!-- Age Slider -->
+                <div class="form-group">
+                    <label>Age <span id="age-val" class="val-display">35</span></label>
+                    <input type="range" id="Age" name="Age" min="18" max="80" value="35">
+                </div>
+
+                <!-- Gender Toggle -->
+                <div class="form-group">
+                    <label>Gender</label>
+                    <div class="toggle-group" id="gender-group">
+                        <button type="button" class="toggle-btn active" data-val="Female">Female</button>
+                        <button type="button" class="toggle-btn" data-val="Male">Male</button>
+                    </div>
+                </div>
+
+                <!-- Subscription Length Slider -->
+                <div class="form-group">
+                    <label>Contract Length <span id="sub-val" class="val-display">12 months</span></label>
+                    <input type="range" id="Subscription_Length" name="Subscription_Length" min="1" max="24" value="12">
+                </div>
+
+                <!-- Monthly Charges Slider -->
+                <div class="form-group">
+                    <label>Monthly Bill <span id="bill-val" class="val-display">$85</span></label>
+                    <input type="range" id="Monthly_Charges" name="Monthly_Charges" min="20" max="150" value="85">
+                </div>
+
+                <!-- Usage Slider -->
+                <div class="form-group">
+                    <label>Usage (GB/mo) <span id="usage-val" class="val-display">150 GB</span></label>
+                    <input type="range" id="Usage" name="Usage" min="5" max="500" value="150">
+                </div>
+
+                <!-- Payment Method Select -->
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <select id="Payment_Method" name="Payment_Method">
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Mailed Check">Mailed Check</option>
+                    </select>
+                </div>
+
+                <!-- Complaints Counter -->
+                <div class="form-group full-width">
+                    <label>Customer Service Complaints</label>
+                    <div class="counter-group">
+                        <button type="button" class="counter-btn" id="complaints-dec">-</button>
+                        <span class="counter-val" id="complaints-val">0</span>
+                        <button type="button" class="counter-btn" id="complaints-inc">+</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn full-width">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-2 5h.01M9 16h.01M9 12h.01M12 12h.01M12 16h.01M15 12h.01M15 16h.01"></path>
+                    </svg>
+                    Evaluate Churn Probability
+                </button>
+            </form>
+        </div>
+
+        <!-- Result Display Section -->
+        <div class="result-section">
+            <h2>Risk Assessment</h2>
+            
+            <div class="result-card" id="result-card">
+                <!-- Initial Empty State -->
+                <div class="empty-state" id="empty-state">
+                    <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"></path>
+                    </svg>
+                    <p>Select customer variables and hit evaluate to perform ML probability assessment.</p>
+                </div>
+
+                <!-- Output Display (Hidden initially) -->
+                <div class="gauge-container" id="gauge-container" style="display: none;">
+                    <svg class="gauge-svg">
+                        <circle class="gauge-bg" cx="100" cy="100" r="90"></circle>
+                        <circle class="gauge-progress" id="gauge-progress" cx="100" cy="100" r="90"></circle>
+                    </svg>
+                    <div class="gauge-text">
+                        <span class="gauge-percentage" id="score-percent">0%</span>
+                        <span class="gauge-label">Risk score</span>
+                    </div>
+                </div>
+
+                <div class="badge" id="risk-badge">Retained</div>
+                
+                <p class="analysis-text" id="analysis-text" style="display: none;"></p>
+
+                <!-- Footnote container -->
+                <div class="footer-info" id="footer-info" style="display: none;">
+                    <span id="meta-version">Model Version: v1</span>
+                    <span id="meta-type">Type: Random Forest</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. Manage interactive UI controls
+    
+    // Sliders displays
+    const sliders = [
+        { id: "Age", display: "age-val", suffix: "" },
+        { id: "Subscription_Length", display: "sub-val", suffix: " months" },
+        { id: "Monthly_Charges", display: "bill-val", suffix: "", prefix: "$" },
+        { id: "Usage", display: "usage-val", suffix: " GB" }
+    ];
+
+    sliders.forEach(slider => {
+        const el = document.getElementById(slider.id);
+        const disp = document.getElementById(slider.display);
+        el.addEventListener("input", () => {
+            let pref = slider.prefix || "";
+            let suff = slider.suffix || "";
+            disp.textContent = pref + el.value + suff;
+        });
+    });
+
+    // Gender toggles
+    let selectedGender = "Female";
+    const genderBtns = document.querySelectorAll("#gender-group .toggle-btn");
+    genderBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            genderBtns.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            selectedGender = btn.getAttribute("data-val");
+        });
+    });
+
+    // Complaints counter
+    let complaintsCount = 0;
+    const complaintsVal = document.getElementById("complaints-val");
+    document.getElementById("complaints-dec").addEventListener("click", () => {
+        if (complaintsCount > 0) {
+            complaintsCount--;
+            complaintsVal.textContent = complaintsCount;
+        }
+    });
+    document.getElementById("complaints-inc").addEventListener("click", () => {
+        if (complaintsCount < 4) { // Our dataset strictly has complaints from 0 to 4
+            complaintsCount++;
+            complaintsVal.textContent = complaintsCount;
+        }
+    });
+
+    // 2. Form submission and API Fetch
+    const form = document.getElementById("churn-form");
+    const emptyState = document.getElementById("empty-state");
+    const gaugeContainer = document.getElementById("gauge-container");
+    const gaugeProgress = document.getElementById("gauge-progress");
+    const scorePercent = document.getElementById("score-percent");
+    const riskBadge = document.getElementById("risk-badge");
+    const analysisText = document.getElementById("analysis-text");
+    const resultCard = document.getElementById("result-card");
+    const footerInfo = document.getElementById("footer-info");
+    const metaVersion = document.getElementById("meta-version");
+    const metaType = document.getElementById("meta-type");
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        // Build JSON Payload
+        const payload = {
+            Age: parseFloat(document.getElementById("Age").value),
+            Gender: selectedGender,
+            Subscription_Length: parseFloat(document.getElementById("Subscription_Length").value),
+            Monthly_Charges: parseFloat(document.getElementById("Monthly_Charges").value),
+            Usage: parseFloat(document.getElementById("Usage").value),
+            Complaints: complaintsCount,
+            Payment_Method: document.getElementById("Payment_Method").value
+        };
+
+        try {
+            // Send API call to backendpredict
+            const response = await fetch("/predict", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error("HTTP error " + response.status);
+            }
+
+            const data = await response.json();
+            displayResults(data, payload);
+            
+        } catch (error) {
+            console.error("Error evaluating churn probability:", error);
+            alert("Error connecting to the ML prediction API server. Make sure FastAPI server is running on port 8000!");
+        }
+    });
+
+    function displayResults(data, payload) {
+        // Hide empty state, show progress container
+        emptyState.style.display = "none";
+        gaugeContainer.style.display = "block";
+        analysisText.style.display = "block";
+        footerInfo.style.display = "flex";
+
+        const probability = data.churn_probability;
+        const percentage = Math.round(probability * 100);
+
+        // Update Circular Gauge
+        // Radius = 90. Circumference = 2 * PI * 90 = 565.48
+        const circumference = 565.48;
+        const offset = circumference - (probability * circumference);
+        gaugeProgress.style.strokeDashoffset = offset;
+        
+        // Update styling based on risk
+        resultCard.className = "result-card"; // Reset
+        riskBadge.className = "badge"; // Reset
+
+        if (data.will_churn === "YES") {
+            resultCard.classList.add("active-risk");
+            riskBadge.classList.add("risk");
+            riskBadge.textContent = "High Risk";
+            gaugeProgress.style.stroke = "var(--color-risk)";
+            document.getElementById("score-percent").style.color = "var(--color-risk)";
+        } else {
+            resultCard.classList.add("active-safe");
+            riskBadge.classList.add("safe");
+            riskBadge.textContent = "Loyal Customer";
+            gaugeProgress.style.stroke = "var(--color-safe)";
+            document.getElementById("score-percent").style.color = "var(--color-safe)";
+        }
+
+        // Animate counter
+        animateCounter(percentage);
+
+        // Formulate customized actionable business recommendation
+        let recommendation = "";
+        if (payload.Complaints > 0) {
+            recommendation = `Risk factors: Customer has registered <strong>${payload.Complaints} support complaint(s)</strong>. ` +
+                "Recommend customer service team proactively initiates a retention courtesy call within 24 hours.";
+        } else if (payload.Monthly_Charges > 100 && payload.Subscription_Length < 12) {
+            recommendation = "Risk factors: High monthly bills paired with a short contract contract length. " +
+                "Recommend offering a 12-month contract lock-in with a 15% discount offer.";
+        } else if (data.will_churn === "YES") {
+            recommendation = "Risk factors: Low historical engagement relative to costs. Recommend sending an automated discount code or service feedback questionnaire.";
+        } else {
+            recommendation = "Customer engagement is highly healthy! No retention action required. Keep monitoring service quality.";
+        }
+        
+        analysisText.innerHTML = recommendation;
+
+        // Meta tags
+        metaVersion.textContent = `Model Version: v${data.model_version}`;
+        metaType.textContent = `Algorithm: ${data.model_type}`;
+    }
+
+    function animateCounter(target) {
+        let current = 0;
+        const duration = 1000; // 1 second
+        const stepTime = Math.abs(Math.floor(duration / target));
+        
+        const timer = setInterval(() => {
+            current++;
+            scorePercent.textContent = current + "%";
+            if (current >= target) {
+                clearInterval(timer);
+                scorePercent.textContent = target + "%";
+            }
+        }, stepTime || 20);
+    }
+</script>
+</body>
+</html>

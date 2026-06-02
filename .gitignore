@@ -1,0 +1,19 @@
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# Python Cache & Compiled Files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Datasets (We generate these dynamically in CI/CD, no need to bloat Git)
+data/*.csv
+
+# Local OS Files
+.DS_Store
+Thumbs.db
