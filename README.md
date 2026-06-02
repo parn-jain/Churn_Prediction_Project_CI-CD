@@ -1,3 +1,13 @@
+---
+title: Customer Churn Analytics Dashboard
+emoji: 📊
+colorFrom: cyan
+colorTo: blue
+sdk: docker
+app_port: 8000
+pinned: false
+---
+
 # Customer Churn Prediction: End-to-End ML Lifecycle & Study Guide
 
 Welcome to the **Customer Churn Prediction End-to-End ML Project**! This project serves as a comprehensive, hands-on learning lab designed to revise and master the entire Machine Learning Lifecycle and beginner MLOps practices.
