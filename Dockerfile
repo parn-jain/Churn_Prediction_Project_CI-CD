@@ -21,7 +21,6 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # We need app/ (FastAPI), src/ (utilities), and models/ (saved pipelines)
 COPY app/ ./app/
 COPY src/ ./src/
-COPY models/ ./models/
 
 # Expose port 8000 for the FastAPI server to listen on
 EXPOSE 8000
