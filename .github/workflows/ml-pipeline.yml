@@ -79,15 +79,12 @@ jobs:
 
     # 2. Push to Hugging Face Spaces Git Remote
     - name: Push Code to Hugging Face Spaces
-      env:
-        HF_USERNAME: ${{ secrets.HF_USERNAME }}
-        HF_TOKEN: ${{ secrets.HF_TOKEN }}
       run: |
         git config --global user.email "actions@github.com"
         git config --global user.name "GitHub Actions"
         
         # Configure the Hugging Face Spaces Git remote URL securely using our secrets
-        git remote add hf https://huggingface.co/spaces/$HF_USERNAME/customer-churn-analytics
+        git remote add hf https://huggingface.co/spaces/${{ secrets.HF_USERNAME }}/customer-churn-analytics
         
         # Force-push the main branch up to Hugging Face Spaces remote
-        git push -f https://$HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/$HF_USERNAME/customer-churn-analytics main
+        git push -f https://${{ secrets.HF_USERNAME }}:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/${{ secrets.HF_USERNAME }}/customer-churn-analytics main

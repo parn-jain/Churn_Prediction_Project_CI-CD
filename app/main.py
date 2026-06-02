@@ -20,8 +20,21 @@ async def lifespan(app: FastAPI):
     """
     Handles startup and shutdown events.
     Loads the model once on startup into RAM so predictions are blazing fast.
+    If the model registry is missing, it dynamically runs on-the-fly training!
     """
     global model_pipeline, model_metadata
+    
+    # On-the-Fly Training Safeguard
+    from src.pipeline_builder import METADATA_PATH
+    if not os.path.exists(METADATA_PATH):
+        print("[FastAPI Startup] Model registry not found! Running pipeline orchestrator on-the-fly...")
+        try:
+            import run_interactive
+            run_interactive.run_pipeline_orchestrator()
+            print("[FastAPI Startup] On-the-fly model training and registration complete!")
+        except Exception as train_error:
+            print(f"[FastAPI Startup ERROR] On-the-fly training failed: {str(train_error)}")
+            
     print("[FastAPI Startup] Loading production ML model from registry...")
     try:
         model_pipeline, model_metadata = load_model_from_registry()

@@ -17,3 +17,6 @@ data/*.csv
 # Local OS Files
 .DS_Store
 Thumbs.db
+
+# Model Registry (Container trains on-the-fly, no need to push heavy binaries)
+models/registry/
